@@ -2,8 +2,11 @@ import tkinter as tk
 from tkinter import messagebox
 from PIL import ImageTk, Image
 from controller import ControladorCalculadora
-import keyboard
 import os
+import sympy
+from sympy import integrate
+from sympy import symbols
+import re
 
 class Calculadora(tk.Tk):
     def __init__(self):
@@ -14,23 +17,7 @@ class Calculadora(tk.Tk):
 
         self.resultado_var = tk.StringVar()
         self.controlador = ControladorCalculadora()
-
-        self.tipo_integral = tk.StringVar(value="Primera Funcion")
-        self.parametros_integral = []
-
         self.crear_interfaz()
-
-        # Detectar teclas presionadas
-        for i in range(10):
-            keyboard.on_press_key(str(i), lambda e, n=i: self.click_boton(str(n)))
-        keyboard.on_press_key("enter", lambda _: self.operar())
-        keyboard.on_press_key("+", lambda _: self.operar_tecla("Suma"))
-        keyboard.on_press_key("-", lambda _: self.operar_tecla("Resta"))
-        keyboard.on_press_key("*", lambda _: self.operar_tecla("Multiplicación"))
-        keyboard.on_press_key("/", lambda _: self.operar_tecla("División"))
-        keyboard.on_press_key(".", lambda _: self.click_boton("."))
-        keyboard.on_press_key("c", lambda _: self.clear())
-        keyboard.on_press_key("backspace", lambda _: self.backspace())
 
     def crear_interfaz(self):
         # Crear imagen y mostrarla
@@ -56,19 +43,41 @@ class Calculadora(tk.Tk):
         ]
 
         for boton_text, fila, columna in botones:
-            if boton_text == '=':
-                boton = tk.Button(self, text=boton_text, font=("Arial", 18), width=5, height=2, bg="#FFA500", fg="#000000", command=self.operar)
-            elif boton_text == '∫':
-                boton = tk.Button(self, text=boton_text, font=("Arial", 18), width=5, height=2, bg="#6A5ACD", fg="#FFFFFF", command=self.integrar)
-            elif boton_text == 'Salir':
-                boton = tk.Button(self, text=boton_text, font=("Arial", 18), width=5, height=2, bg="#F74D4D", fg="#FFFFFF", command=self.quit)
-            elif boton_text == 'C':
-                boton = tk.Button(self, text=boton_text, font=("Arial", 18), width=5, height=2, bg="#FF4500", fg="#FFFFFF", command=self.clear)
-            elif boton_text == '⌫':
-                boton = tk.Button(self, text=boton_text, font=("Arial", 18), width=5, height=2, bg="#FF4500", fg="#FFFFFF", command=self.backspace)
-            else:
-                boton = tk.Button(self, text=boton_text, font=("Arial", 18), width=5, height=2, bg="#87CEEB", fg="#000000", command=lambda b=boton_text: self.click_boton(b))
+            boton = tk.Button(
+                self,
+                text=boton_text,
+                font=("Arial", 18),
+                width=5,
+                height=2,
+                bg=self.obtener_color_boton(boton_text),
+                fg="#FFFFFF" if boton_text in ('∫', 'Salir', 'C', '⌫') else "#000000",
+                command=lambda b=boton_text: self.ejecutar_comando_boton(b)
+            )
             boton.grid(row=fila, column=columna, padx=5, pady=5)
+
+    def obtener_color_boton(self, texto):
+        colores = {
+            "=": "#FFA500",
+            "∫": "#6A5ACD",
+            "Salir": "#F74D4D",
+            "C": "#FF4500",
+            "⌫": "#FF4500",
+        }
+        return colores.get(texto, "#87CEEB")
+
+    def ejecutar_comando_boton(self, boton):
+        if boton == '=':
+            self.operar()
+        elif boton == '∫':
+            self.integrar()
+        elif boton == 'Salir':
+            self.quit()
+        elif boton == 'C':
+            self.clear()
+        elif boton == '⌫':
+            self.backspace()
+        else:
+            self.click_boton(boton)
 
     def click_boton(self, boton):
         self.resultado_var.set(self.resultado_var.get() + str(boton))
@@ -84,41 +93,43 @@ class Calculadora(tk.Tk):
     def operar(self):
         try:
             expression = self.resultado_var.get()
-            # Separar la expresión en números y operación
-            if '+' in expression:
-                a, b = map(float, expression.split('+'))
-                resultado = self.controlador.operar('Suma', a, b)
-            elif '-' in expression:
-                a, b = map(float, expression.split('-'))
-                resultado = self.controlador.operar('Resta', a, b)
-            elif '*' in expression:
-                a, b = map(float, expression.split('*'))
-                resultado = self.controlador.operar('Multiplicación', a, b)
-            elif '/' in expression:
-                a, b = map(float, expression.split('/'))
-                resultado = self.controlador.operar('División', a, b)
-            else:
-                raise ValueError("Operación no válida.")
 
-            self.resultado_var.set(resultado)
+            # Procesar integrales
+            if "∫" in expression:
+                self.procesar_integral(expression)
+            else:
+                # Procesar operaciones básicas
+                resultado = eval(expression)  # Evalúa expresiones simples (usando operadores básicos)
+                self.resultado_var.set(resultado)
         except Exception as e:
             messagebox.showerror("Error", f"Entrada no válida: {str(e)}")
 
-    def operar_tecla(self, operacion):
-        current_text = self.resultado_var.get()
-        if operacion == "Suma":
-            self.resultado_var.set(current_text + '+')
-        elif operacion == "Resta":
-            self.resultado_var.set(current_text + '-')
-        elif operacion == "Multiplicación":
-            self.resultado_var.set(current_text + '*')
-        elif operacion == "División":
-            self.resultado_var.set(current_text + '/')
-        else:
-            messagebox.showerror("Error", "Operación inválida")
+    def procesar_integral(self, expression):
+        try:
+            # Eliminar el símbolo ∫ y los paréntesis alrededor
+            expression = expression.strip("∫()").strip()
+            
+            # Preprocesar la expresión para agregar los signos de multiplicación donde falten
+            expression = re.sub(r'(?<=[0-9])(?=[a-zA-Z])', '*', expression)  # Ej.: 2x -> 2*x
+            expression = re.sub(r'(?<=[a-zA-Z])(?=[0-9])', '*', expression)  # Ej.: x2 -> x*2
+            expression = re.sub(r'(?<=[)])(?=[a-zA-Z0-9])', '*', expression)  # Ej.: (x+1)x -> (x+1)*x
+            
+            x = symbols('x')  # Definir la variable simbólica
+            
+            # Convertir la expresión en una simbólica segura
+            funcion = sympy.sympify(expression)
+            
+            # Calcular la integral indefinida
+            resultado = integrate(funcion, x)
+            
+            # Mostrar el resultado
+            self.resultado_var.set(str(resultado))
+        except Exception as e:
+            messagebox.showerror("Error", f"Error al calcular la integral: {str(e)}")
+
+
 
     def integrar(self):
-        # Función para manejar el botón de integral
         current_text = self.resultado_var.get()
         self.resultado_var.set(current_text + "∫(")
 

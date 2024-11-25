@@ -1,17 +1,17 @@
 from funciones import sumar, restar, multiplicar, dividir, primera_funcion, segunda_funcion, tercera_funcion
 
 class ControladorCalculadora:    
-    def operar(self, operacion, a, b):
+    def operar(self, operacion, *args):
         if operacion == 'Suma':
-            return sumar(a, b)
+            return sumar(*args)
         elif operacion == 'Resta':
-            return restar(a, b)
+            return restar(*args)
         elif operacion == 'Multiplicacion':
-            return multiplicar(a, b)
+            return multiplicar(*args)
         elif operacion == 'Division':
-            return dividir(a, b)
+            return dividir(*args)
         else:
-            raise ValueError("Operación no valida")
+            raise ValueError("Operación no válida")
 
     def calcular_integral(self, tipo, *args):
         if tipo == 'Primera Función':
@@ -21,6 +21,4 @@ class ControladorCalculadora:
         elif tipo == 'Tercera Función':
             return tercera_funcion(*args)
         else:
-            raise ValueError("Tipo de integral no valido")
-        
-        
+            raise ValueError("Tipo de integral no válida")
