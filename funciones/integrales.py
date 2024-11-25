@@ -1,33 +1,10 @@
-import simpy as sp
+import sympy as sp
 
-def sumar(*args):
-    return sum(args)
+def calcular_integral_indefinida(expresion):
+    x = sp.Symbol('x')
+    funcion = sp.sympify(expresion)
+    return sp.integrate(funcion, x)
 
-def restar(*args):
-    if len(args) < 2:
-        raise ValueError("Se requieren al menos dos números para restar.")
-    resultado = args[0]
-    for num in args[1:]:
-        resultado -= num
-    return resultado
-
-def multiplicar(*args):
-    resultado = 1
-    for num in args:
-        resultado *= num
-    return resultado
-
-def dividir(*args):
-    if len(args) < 2:
-        raise ValueError("Se requieren al menos dos números para dividir.")
-    resultado = args[0]
-    for num in args[1:]:
-        if num == 0:
-            raise ValueError("No se puede dividir por cero.")
-        resultado /= num
-    return resultado
-
-    
 def calcular_integral(funcion, *args):
     limites = args[-2:] 
     coeficientes = args[:-2]  
@@ -54,4 +31,3 @@ def tercera_funcion(A, k, limite_inf, limite_sup):
     limite_inf *= sp.pi
     limite_sup *= sp.pi
     return calcular_integral(funcion, A, k, limite_inf, limite_sup)
-
