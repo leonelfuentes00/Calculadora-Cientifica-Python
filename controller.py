@@ -3,7 +3,7 @@ from tkinter import messagebox
 from PIL import ImageTk, Image
 import os
 from funciones.operaciones import sumar, restar, multiplicar, dividir
-from funciones.integrales import calcular_integral_indefinida
+from funciones.integrales import calcular_integral_indefinida, calcular_integral, primera_funcion, segunda_funcion, tercera_funcion
 from funciones.preprocesador import preprocesar_expresion
 import keyboard
 import threading
@@ -12,7 +12,7 @@ class Calculadora(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Calculadora Pro con Integrales")
-        self.geometry("400x700")
+        self.geometry("400x800")
         self.resizable(0, 0)
 
         self.resultado_var = tk.StringVar()
@@ -30,13 +30,15 @@ class Calculadora(tk.Tk):
         pantalla.grid(row=1, column=0, columnspan=4, padx=10, pady=10, ipady=20)
 
         botones = [
-            ('7', 2, 0), ('8', 2, 1), ('9', 2, 2), ('/', 2, 3),
-            ('4', 3, 0), ('5', 3, 1), ('6', 3, 2), ('*', 3, 3),
-            ('1', 4, 0), ('2', 4, 1), ('3', 4, 2), ('-', 4, 3),
-            ('0', 5, 0), ('.', 5, 1), ('=', 5, 2), ('+', 5, 3),
-            ('∫', 6, 0), ('x', 6, 1), ('^', 6, 2), ('(', 6, 3),
-            (')', 7, 0), ('C', 7, 1), ('⌫', 7, 2), ('Salir', 7, 3)
+            ('∫', 2, 0), ('∫def', 2, 1), ('Primera', 2, 2), ('Segunda', 2, 3),
+            ('Tercera', 3, 0), ('x', 3, 1), ('^', 3, 2), (')', 3, 3),
+            ('(', 4, 0), ('7', 4, 1), ('8', 4, 2), ('9', 4, 3),
+            ('4', 5, 0), ('5', 5, 1), ('6', 5, 2), ('*', 5, 3),
+            ('1', 6, 0), ('2', 6, 1), ('3', 6, 2), ('-', 6, 3),
+            ('0', 7, 0), ('.', 7, 1), ('=', 7, 2), ('+', 7, 3),
+            ('C', 8, 1), ('⌫', 8, 2), ('Salir', 8, 3),
         ]
+
 
         for text, row, col in botones:
             tk.Button(self, text=text, font=("Arial", 18), width=5, height=2,
@@ -53,6 +55,14 @@ class Calculadora(tk.Tk):
             self.operar()
         elif boton == '∫':
             self.integrar()
+        elif boton == '∫def':
+            self.integrar()
+        elif boton == 'Primera':
+            self.mostrar_ventana_parametros(1)
+        elif boton == 'Segunda':
+            self.mostrar_ventana_parametros(2)
+        elif boton == 'Tercera':
+            self.mostrar_ventana_parametros(3)
         elif boton == 'Salir':
             self.quit()
         elif boton == 'C':
@@ -73,6 +83,43 @@ class Calculadora(tk.Tk):
     def clear(self):
         self.resultado_var.set("")
 
+    def mostrar_ventana_parametros(self, tipo):
+        ventana = tk.Toplevel(self)
+        ventana.title(f"Parámetros para {'Primera' if tipo == 1 else 'Segunda' if tipo == 2 else 'Tercera'} función")
+        ventana.geometry("300x300")
+
+        labels = []
+        entries = []
+
+        if tipo == 1:
+            labels = ['a', 'n', 'Límite Inferior', 'Límite Superior']
+        elif tipo == 2:
+            labels = ['a', 'b', 'c', 'Límite Inferior', 'Límite Superior']
+        elif tipo == 3:
+            labels = ['A', 'k', 'Límite Inferior', 'Límite Superior']
+
+        for i, label in enumerate(labels):
+            tk.Label(ventana, text=f"{label}:").grid(row=i, column=0, padx=10, pady=5)
+            entry = tk.Entry(ventana)
+            entry.grid(row=i, column=1, padx=10, pady=5)
+            entries.append(entry)
+        def calcular():
+            try:
+                params = [float(entry.get()) for entry in entries]
+                if tipo == 1:
+                    resultado = primera_funcion(*params)
+                elif tipo == 2:
+                    resultado = segunda_funcion(*params)
+                elif tipo == 3:
+                    resultado = tercera_funcion(*params)
+
+                integral_repr, integral_expr, integral_valor = resultado
+                self.resultado_var.set(f"{integral_repr} = {integral_valor:.4f}")
+                ventana.destroy()
+            except Exception as e:
+                messagebox.showerror("Error", f"Error al calcular: {str(e)}")
+
+        tk.Button(ventana, text="Calcular", command=calcular).grid(row=len(labels), column=0, columnspan=2, pady=10)
     def operar(self):
         try:
             expresion = self.resultado_var.get()
@@ -117,5 +164,5 @@ class Calculadora(tk.Tk):
             for tecla, accion in teclado_map.items():
                 if keyboard.is_pressed(tecla):
                     accion()
-                    while keyboard.is_pressed(tecla):  # Esperar a que se suelte la tecla
+                    while keyboard.is_pressed(tecla):  
                         pass
