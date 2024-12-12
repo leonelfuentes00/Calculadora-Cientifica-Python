@@ -104,6 +104,7 @@ class Calculadora(tk.Tk):
             entry = tk.Entry(ventana)
             entry.grid(row=i, column=1, padx=10, pady=5)
             entries.append(entry)
+
         def calcular():
             try:
                 params = [float(entry.get()) for entry in entries]
@@ -114,8 +115,8 @@ class Calculadora(tk.Tk):
                 elif tipo == 3:
                     resultado = tercera_funcion(*params)
 
-                integral_repr, integral_expr, integral_valor = resultado
-                self.resultado_var.set(f"{integral_repr} = {integral_valor:.4f}")
+                self.resultado_var.set(f"{resultado:.4f}")
+                print(f"Resultado: {resultado:.4f}")
 
                 # Calcular y mostrar el error en consola
                 if tipo == 1:
@@ -125,12 +126,15 @@ class Calculadora(tk.Tk):
                 elif tipo == 3:
                     calcular_error(lambda A, k, x: A * sp.sin(k * x), *params)
 
-
                 ventana.destroy()
+                
+                # Mantener la ventana emergente visible
             except Exception as e:
                 messagebox.showerror("Error", f"Error al calcular: {str(e)}")
 
         tk.Button(ventana, text="Calcular", command=calcular).grid(row=len(labels), column=0, columnspan=2, pady=10)
+        tk.Button(ventana, text="Cerrar", command=ventana.destroy).grid(row=len(labels) + 1, column=0, columnspan=2, pady=5)
+
     def operar(self):
         try:
             expresion = self.resultado_var.get()

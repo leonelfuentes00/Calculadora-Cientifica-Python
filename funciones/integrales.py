@@ -6,14 +6,17 @@ def calcular_integral_indefinida(expresion):
     return sp.integrate(funcion, x)
 
 def calcular_integral(funcion, *args):
-    limites = args[-2:] 
-    coeficientes = args[:-2]  
+    limites = args[-2:]  # Los dos últimos son límites
+    coeficientes = args[:-2]  # El resto son coeficientes
     x = sp.Symbol('x')
     funcion = funcion(*coeficientes, x)
     integral_definida = sp.integrate(funcion, (x, *limites))
     resultado = integral_definida.evalf()
     integral_representacion = f"Integral de {sp.latex(funcion)} desde {limites[0]} hasta {limites[1]}"
-    return integral_representacion, integral_definida, resultado
+    # Muestra en consola
+    print(f"{integral_representacion} = {resultado}")
+    return resultado
+
 
 def primera_funcion(a, n, limite_inf, limite_sup):
     def funcion(a, n, x):
@@ -31,3 +34,4 @@ def tercera_funcion(A, k, limite_inf, limite_sup):
     limite_inf *= sp.pi
     limite_sup *= sp.pi
     return calcular_integral(funcion, A, k, limite_inf, limite_sup)
+

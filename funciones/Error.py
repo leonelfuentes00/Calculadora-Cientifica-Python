@@ -26,8 +26,8 @@ def calcular_error(funcion, *args):
 
     # Cálculo del error absoluto
     error = abs(resultado_simb - resultado_num)
-    print(f"Resultado Simbólico: {resultado_simb:.6f}")
-    print(f"Resultado Numérico: {resultado_num:.6f}")
-    print(f"Error Absoluto: {error:.6f}")
+    print(f"Resultado Simbólico: {resultado_simb:.16f}")
+    print(f"Resultado Numérico: {resultado_num:.16f}")
+    print(f"Error Absoluto: {error:.16f}")
 
     return error
