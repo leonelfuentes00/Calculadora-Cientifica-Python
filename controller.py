@@ -7,6 +7,9 @@ from funciones.integrales import calcular_integral_indefinida, calcular_integral
 from funciones.preprocesador import preprocesar_expresion
 import keyboard
 import threading
+from funciones.Error import calcular_error
+from scipy.integrate import quad
+import sympy as sp
 
 class Calculadora(tk.Tk):
     def __init__(self):
@@ -113,6 +116,16 @@ class Calculadora(tk.Tk):
 
                 integral_repr, integral_expr, integral_valor = resultado
                 self.resultado_var.set(f"{integral_repr} = {integral_valor:.4f}")
+
+                # Calcular y mostrar el error en consola
+                if tipo == 1:
+                    calcular_error(lambda a, n, x: a * x**n, *params)
+                elif tipo == 2:
+                    calcular_error(lambda a, b, c, x: a * x**2 + b * x + c, *params)
+                elif tipo == 3:
+                    calcular_error(lambda A, k, x: A * sp.sin(k * x), *params)
+
+
                 ventana.destroy()
             except Exception as e:
                 messagebox.showerror("Error", f"Error al calcular: {str(e)}")
